@@ -21,7 +21,9 @@
                 <tr v-for="post in posts" :key="post.id" class="hover:bg-gray-100">
                     <td class="py-2 px-4 border-b">{{ post.id }}</td>
                     <td class="py-2 px-4 border-b">{{ post.title }}</td>
-                    <td class="py-2 px-4 border-b">{{ post.body.slice(0, 50) }}...</td>
+                    <td class="py-2 px-4 border-b">
+                        {{ isLocalPost(post) ? post.body : post.body.slice(0, 50) + (post.body.length > 50 ? '...' : '') }}
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -60,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, onMounted } from 'vue'
+    import { ref, onMounted, computed } from 'vue'
     import { storeToRefs } from 'pinia'
     import { usePostStore } from '../stores/posts'
 
@@ -68,11 +70,15 @@
     const showModal = ref(false)
     const newPost = ref({ title: '', body: '', userId: 1 })
 
-    const { posts, loading, currentPage, totalPages, sortOrder } = storeToRefs(postStore)
+    const { posts, loading, currentPage, totalPages, sortOrder, localPosts } = storeToRefs(postStore)
     const { setPage, toggleSortOrder, createPost: storeCreatePost } = postStore
 
     onMounted(() => {
         postStore.fetchPosts()
+    })
+
+    const isLocalPost = computed(() => (post) => {
+        return localPosts.value.some(localPost => localPost.id === post.id)
     })
 
     const openModal = () => {
